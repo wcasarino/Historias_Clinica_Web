@@ -2,7 +2,7 @@
   "name": "historias-clinicas-client",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:5001",
+  "proxy": "https://historias-clinicas-api.herokuapp.com/",
   "dependencies": {
     "@date-io/date-fns": "^2.13.1",
     "@emotion/react": "^11.7.1",

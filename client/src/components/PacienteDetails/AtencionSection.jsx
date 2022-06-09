@@ -174,7 +174,7 @@ const AtencionSection = () => {
         }
         axios
           .post(
-            `http://localhost:5001/upload/${id}/UpdateSelectedFilesAtencion`,
+            `https://historias-clinicas-api.herokuapp.com/upload/${id}/UpdateSelectedFilesAtencion`,
             data
           )
           .then((res) => {
@@ -224,7 +224,7 @@ const AtencionSection = () => {
         }
         axios
           .post(
-            `http://localhost:5001/upload/${id}/UpdateSelectedFilesAtencion`,
+            `https://historias-clinicas-api.herokuapp.com/upload/${id}/UpdateSelectedFilesAtencion`,
             data
           )
           .then((res) => {
@@ -422,7 +422,7 @@ const AtencionSection = () => {
     download({
       name: file.substr(15, file.length - 15),
       thumb: "",
-      file: `http://localhost:5001/uploads/${id}/${viewAteId}/${file}`,
+      file: `https://historias-clinicas-api.herokuapp.com/uploads/${id}/${viewAteId}/${file}`,
       filename: file.substr(15, file.length - 15),
     });
     */

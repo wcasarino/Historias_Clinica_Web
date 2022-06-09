@@ -23,8 +23,11 @@ app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.json({ limit: '30mb', extended: true }))
 app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }))
 
+app.use(cors());
+
+/*
 var allowedOrigins = ['http://localhost:3000',
-  'http://yourapp.com'];
+  'http://198.12.58.45', 'https://historia-clinica.netlify.app'];
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
@@ -36,7 +39,7 @@ app.use(cors({
     return callback(null, true);
   }
 }));
-
+*/
 
 app.use("/user", userRouter);
 app.use('/pacientes', pacienteRoutes);
@@ -44,10 +47,14 @@ app.use('/upload', uploadRouter);
 app.use('/download', downloadRouter);
 app.use('/atenciones', atencionesRouter);
 
-//const CONNECTION_URL = 'mongodb+srv://wcasarino:MamiKa0503@cluster0.c1snyt4.mongodb.net/turnos_app?retryWrites=true&w=majority';
+app.use('/', (req, res) => {
+  res.send("APP IS RUNNIG. ahora");
+});
+
+const CONNECTION_URL = 'mongodb+srv://wcasarino:MamiKa0503@cluster0.c1snyt4.mongodb.net/turnos_app?retryWrites=true&w=majority';
 const PORT = process.env.PORT || 5001;
 
-mongoose.connect(process.env.CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => app.listen(PORT, () => console.log(`Server Running on Port: http://localhost:${PORT}`)))
   .catch((error) => console.log(`${error} did not connect`));
 
