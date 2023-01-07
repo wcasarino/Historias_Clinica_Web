@@ -2,7 +2,7 @@
   "name": "historias-clinicas-client",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://historias-clinicas-api.herokuapp.com/",
+  "proxy": "http://localhost:5001/",
   "dependencies": {
     "@date-io/date-fns": "^2.13.1",
     "@emotion/react": "^11.7.1",
@@ -26,6 +26,7 @@
     "moment": "^2.29.1",
     "process": "^0.11.10",
     "react": "^17.0.2",
+    "react-big-calendar": "^1.5.0",
     "react-bootstrap": "^2.1.2",
     "react-dom": "^17.0.2",
     "react-file-base64": "^1.0.3",

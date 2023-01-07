@@ -1,27 +1,28 @@
 import jwt from "jsonwebtoken";
-
-const secret = 'test';
+import dotenv from "dotenv";
 
 const auth = async (req, res, next) => {
+  dotenv.config();
+  const secret = process.env.SECRET;
   try {
-    const token = req.headers.authorization.split(" ")[1];
-    const isCustomAuth = token.length < 500;
-
-    let decodedData;
-
-    if (token && isCustomAuth) {
-      decodedData = jwt.verify(token, secret);
-
-      req.userId = decodedData?.id;
+    if (!req?.headers?.authorization) {
+      throw new Error("Authorization header is required");
     } else {
-      decodedData = jwt.decode(token);
-
-      req.userId = decodedData?.sub;
+      const token = req?.headers?.authorization?.split(" ")[1];
+      const isCustomAuth = token.length < 500;
+      let decodedData;
+      if (token && isCustomAuth) {
+        decodedData = jwt.verify(token, secret);
+        req.userId = decodedData?.id;
+      } else {
+        decodedData = jwt.decode(token);
+        req.userId = decodedData?.sub;
+      }
+      next();
     }
-
-    next();
   } catch (error) {
-    console.log(error);
+    console.log("Entro a Autorizar, con error");
+    console.error(error);
   }
 };
 

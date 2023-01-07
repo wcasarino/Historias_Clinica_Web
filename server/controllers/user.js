@@ -1,9 +1,11 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 import UserModal from "../models/user.js";
 
-const secret = 'test';
+dotenv.config();
+const secret = process.env.SECRET;
 
 export const signin = async (req, res) => {
   const { email, password } = req.body;
@@ -11,13 +13,21 @@ export const signin = async (req, res) => {
   try {
     const oldUser = await UserModal.findOne({ email });
 
-    if (!oldUser) return res.status(200).json({ message: "El usuario no existe", error: true });
+    if (!oldUser)
+      return res
+        .status(200)
+        .json({ message: "El usuario no existe", error: true });
 
     const isPasswordCorrect = await bcrypt.compare(password, oldUser.password);
 
-    if (!isPasswordCorrect) return res.status(200).json({ message: "Contraseña inválida", error: true });
+    if (!isPasswordCorrect)
+      return res
+        .status(200)
+        .json({ message: "Contraseña inválida", error: true });
 
-    const token = jwt.sign({ email: oldUser.email, id: oldUser._id }, secret, { expiresIn: "24h" });
+    const token = jwt.sign({ email: oldUser.email, id: oldUser._id }, secret, {
+      expiresIn: "24h",
+    });
 
     res.status(200).json({ result: oldUser, token, error: false });
   } catch (err) {
@@ -31,13 +41,22 @@ export const signup = async (req, res) => {
   try {
     const oldUser = await UserModal.findOne({ email });
 
-    if (oldUser) return res.status(200).json({ message: "El usuario ya existe", error: true });
+    if (oldUser)
+      return res
+        .status(200)
+        .json({ message: "El usuario ya existe", error: true });
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const result = await UserModal.create({ email, password: hashedPassword, name: `${firstName} ${lastName}` });
+    const result = await UserModal.create({
+      email,
+      password: hashedPassword,
+      name: `${firstName} ${lastName}`,
+    });
 
-    const token = jwt.sign({ email: result.email, id: result._id }, secret, { expiresIn: "1h" });
+    const token = jwt.sign({ email: result.email, id: result._id }, secret, {
+      expiresIn: "1h",
+    });
 
     res.status(201).json({ result, token, error: false });
   } catch (error) {
@@ -45,5 +64,4 @@ export const signup = async (req, res) => {
 
     console.log(error);
   }
-
 };

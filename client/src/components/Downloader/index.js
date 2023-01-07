@@ -1,15 +1,35 @@
 import React, { useEffect, useState } from "react";
-import "./index.css";
 import { ProgressBar } from "react-bootstrap";
-//import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Axios from "axios";
 
 const Downloader = ({ files = [], remove }) => {
   return (
-    <div className="downloader">
+    <div
+      className="downloader"
+      style={{
+        width: "500px",
+        minHeight: "128px",
+        position: "fixed",
+        right: "18px",
+        top: "18px",
+        maxHeight: "700px",
+        overflowY: "auto",
+      }}
+    >
       <div className="card">
-        <div className="card-header">Descargar Archivo</div>
-        <ul className="list-group list-group-flush">
+        <div
+          className="card-header"
+          style={{
+            color: "#fff",
+            backgroundColor: "rgb(93 11 11 / 92%)",
+          }}
+        >
+          Descargar Archivo
+        </div>
+        <ul
+          className="list-group list-group-flush"
+          style={{ maxHeight: "300px", overflow: "hidden", overflowY: "auto" }}
+        >
           {files.map((file, idx) => (
             <DownloadItem
               key={idx}
@@ -23,12 +43,13 @@ const Downloader = ({ files = [], remove }) => {
   );
 };
 
-const DownloadItem = ({ name, file, filename, removeFile }) => {
+const DownloadItem = ({ name, idPaciente, IdAtencion, file, removeFile }) => {
   const [downloadInfo, setDownloadInfo] = useState({
     progress: 0,
     completed: false,
     total: 0,
     loaded: 0,
+    error: false,
   });
 
   useEffect(() => {
@@ -41,37 +62,50 @@ const DownloadItem = ({ name, file, filename, removeFile }) => {
           loaded,
           total,
           completed: false,
+          error: false,
         });
       },
     };
 
-    Axios.get(file, {
+    const urlFile = `http://localhost:5001/download/${idPaciente}/${IdAtencion}/${file}/downloadFile`;
+
+    Axios.get(urlFile, {
       responseType: "blob",
       ...options,
-    }).then(function (response) {
-
-      const url = window.URL.createObjectURL(
-        new Blob([response.data], {
-          type: response.headers["content-type"],
-        })
-      );
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-
-      setDownloadInfo((info) => ({
-        ...info,
-        completed: true,
-      }));
-
-      setTimeout(() => {
-        removeFile();
-      }, 4000);
     })
-      .catch((err) => console.log('Error Dow', err));
+      .then(function (response) {
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], {
+            type: response.headers["content-type"],
+          })
+        );
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", name);
+        document.body.appendChild(link);
+        link.click();
+
+        setDownloadInfo((info) => ({
+          ...info,
+          completed: true,
+        }));
+
+        setTimeout(() => {
+          removeFile();
+        }, 2000);
+      })
+      .catch((err) => {
+        console.log("Error Dow", err);
+        setDownloadInfo((info) => ({
+          ...info,
+          error: true,
+        }));
+
+        setTimeout(() => {
+          removeFile();
+        }, 2000);
+      });
   }, []);
 
   const formatBytes = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
@@ -92,14 +126,15 @@ const DownloadItem = ({ name, file, filename, removeFile }) => {
                 </>
               )}
 
-              {downloadInfo.loaded === 0 && <>Empezando...</>}
+              {downloadInfo.loaded === 0 && <>Descargando...</>}
             </small>
           </div>
           <div className="d-inline ml-2 ml-auto">
             {downloadInfo.completed && (
-              <span className="text-success">
-                Completado
-              </span>
+              <span className="text-success">Completado</span>
+            )}
+            {downloadInfo.error && (
+              <span className="text-danger bg-dark">Error</span>
             )}
           </div>
         </div>

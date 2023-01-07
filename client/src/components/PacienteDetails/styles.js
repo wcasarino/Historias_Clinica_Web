@@ -3,7 +3,7 @@ import { makeStyles } from '@mui/styles';
 
 export default makeStyles((theme) => ({
   gridContainer: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       flexDirection: 'column-reverse',
     },
   },
@@ -83,9 +83,14 @@ export default makeStyles((theme) => ({
   },
   buttonSubmit: {
     marginBottom: 10,
+    padding: '10px',
+    margin: '10px',
   },
   camposAtencion: {
     marginLeft: 100,
   },
+  textTags: {
+    marginTop: '10px',
+  }
 
 }));

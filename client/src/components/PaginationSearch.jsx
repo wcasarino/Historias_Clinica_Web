@@ -7,32 +7,73 @@ import { getPacientesBySearch } from "../actions/pacientes";
 import useStyles from "./styles";
 import { useVolverContext } from "../contexts/volverContext";
 
-const Paginate = () => {
+const Paginate = ({ page }) => {
   const { numberOfPages, documentos } = useSelector((state) => state.pacientes);
   const dispatch = useDispatch();
-  const user = JSON.parse(localStorage.getItem("profile"));
-  const classes = useStyles();
-  const { contextVolver } = useVolverContext();
 
-  const { vista, searchQuery, page, tags, anomesStr, fechaAte1 } =
-    contextVolver;
+  const classes = useStyles();
+  const { contextVolver, setContextVolver } = useVolverContext();
+
+  const {
+    vista,
+    searchQuery,
+    tags,
+    anomesStr,
+    fechaAte1,
+    volver,
+    diagnosticos,
+    practicas,
+  } = contextVolver;
 
   const search = searchQuery ? searchQuery : "";
+  const user = JSON.parse(localStorage.getItem("profile"));
 
   useEffect(() => {
     if (page) {
-      dispatch(
-        getPacientesBySearch({
-          search,
-          tags: tags.join(","),
-          page,
-          vista,
-          fechaAte1,
-          anomesStr,
-        })
-      );
+      if (!volver) {
+        dispatch(
+          getPacientesBySearch({
+            search,
+            tags: tags.join(","),
+            page:
+              numberOfPages > page
+                ? page > 0
+                  ? page
+                  : 1
+                : numberOfPages > 0
+                ? numberOfPages
+                : 1,
+            vista,
+            fechaAte1,
+            anomesStr,
+            diagnosticos,
+            practicas,
+          })
+        );
+      }
+      setContextVolver({
+        ...contextVolver,
+        page:
+          numberOfPages > page
+            ? page > 0
+              ? page
+              : 1
+            : numberOfPages > 0
+            ? numberOfPages
+            : 1,
+        volver: false,
+      });
     }
-  }, [dispatch, search, tags, vista, fechaAte1, anomesStr, page]);
+  }, [
+    search,
+    tags,
+    vista,
+    fechaAte1,
+    anomesStr,
+    page,
+    diagnosticos,
+    practicas,
+  ]);
 
   return (
     <>
@@ -50,7 +91,9 @@ const Paginate = () => {
               search || "9a69dc7e834f617"
             }&tags=${tags.join(",")}&page=${
               item.page
-            }&vista=${vista}&fechaAte1=${fechaAte1}&anomesStr=${anomesStr}`}
+            }&vista=${vista}&fechaAte1=${fechaAte1}&anomesStr=${anomesStr}&diagnosticos=${diagnosticos.join(
+              ","
+            )}&practicas=${practicas.join(",")}`}
           />
         )}
       />

@@ -19,7 +19,7 @@ export default makeStyles((theme) => ({
     },
   },
   txtApellidos: {
-    marginBottom: '1rem',
+    marginBottom: '5px',
   },
   searchButton: {
     marginTop: '1rem',

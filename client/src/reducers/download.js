@@ -1,4 +1,4 @@
-import { DOWNLOAD_FILE } from '../constants/actionTypes';
+import { DOWNLOAD_FILE } from "../constants/actionTypes";
 
 const downloadReducer = (state = { fileDwn: {} }, action) => {
   switch (action.type) {

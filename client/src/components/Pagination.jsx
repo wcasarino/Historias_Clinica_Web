@@ -8,19 +8,22 @@ import { getPacientes } from "../actions/pacientes";
 import useStyles from "./styles";
 import { useVolverContext } from "../contexts/volverContext";
 
-const Paginate = () => {
+const Paginate = ({ page }) => {
   const { numberOfPages, documentos } = useSelector((state) => state.pacientes);
   const dispatch = useDispatch();
 
   const classes = useStyles();
-  const { contextVolver } = useVolverContext();
-  const { page } = contextVolver;
+  const { contextVolver, setContextVolver } = useVolverContext();
+  const { volver } = contextVolver;
 
   useEffect(() => {
     if (page) {
-      dispatch(getPacientes(page));
+      if (!volver) {
+        dispatch(getPacientes({page}));
+      }
+      setContextVolver({ ...contextVolver, page: page, volver: false });
     }
-  }, [dispatch, page]);
+  }, [page]);
 
   return (
     <>

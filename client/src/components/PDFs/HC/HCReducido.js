@@ -16,9 +16,6 @@ import HCMedicos from './HCMedicos';
 import HCHabitos from './HCHabitos';
 import HCPsicosocial from './HCPsicosocial';
 import HCAtenciones from './HCAtenciones';
-//import Skills from './Skills';
-//import Education from './Education';
-//import Experience from './Experience';
 
 Font.register({
   family: 'Open Sans',
@@ -123,7 +120,8 @@ const styles = StyleSheet.create({
 
 
 
-const HCReducido = ({ paciente, pdfPaciente, pdfDomicilio, pdfFamiliares, pdfGineco, pdfHabitos, pdfMedicos, pdfPsicoSocial, pdfPersona, }) => {
+const HCReducido = ({ paciente, pdfPaciente, pdfDomicilio, pdfFamiliares, pdfGineco, pdfHabitos, pdfMedicos, pdfPsicoSocial, pdfPersona, vistaPdf, periodo }) => {
+
 
   if (!paciente) {
     return null;
@@ -154,7 +152,7 @@ const HCReducido = ({ paciente, pdfPaciente, pdfDomicilio, pdfFamiliares, pdfGin
         {typeof paciente.antecedentes?.medicos !== 'undefined' && pdfMedicos ? <HCMedicos paciente={paciente} /> : null}
         {typeof paciente.antecedentes?.habitos !== 'undefined' && pdfHabitos ? <HCHabitos paciente={paciente} /> : null}
         {typeof paciente.antecedentes?.psicosocial !== 'undefined' && pdfPsicoSocial ? <HCPsicosocial paciente={paciente} /> : null}
-        {paciente.atenciones.length > 0 ? <HCAtenciones paciente={paciente} /> : null}
+        {paciente.atenciones.length > 0 ? <HCAtenciones paciente={paciente} vistaPdf={vistaPdf} periodo={periodo} /> : null}
 
         <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
           `${pageNumber} / ${totalPages}`

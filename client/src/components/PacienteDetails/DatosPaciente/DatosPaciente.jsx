@@ -64,11 +64,6 @@ const DatosPaciente = ({ setBtnEstado, btnEstado }) => {
     setBtnGrabar(false);
   };
 
-  const handleFoto = ({ base64 }) => {
-    setPacienteData({ ...pacienteData, foto: base64 });
-    setBtnGrabar(false);
-  };
-
   const hdel = (chipToDelete) => {
     setPacienteData({
       ...pacienteData,
@@ -119,10 +114,7 @@ const DatosPaciente = ({ setBtnEstado, btnEstado }) => {
             onChange={handleChange}
           />
         </Stack>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={{ xs: 1, sm: 2, md: 4 }}
-        >
+        <form autoComplete="off" noValidate style={{ marginBottom: "10px" }}>
           <Box
             sx={{
               display: "grid",
@@ -141,6 +133,7 @@ const DatosPaciente = ({ setBtnEstado, btnEstado }) => {
             name="tagsAdd"
             variant="outlined"
             label="Nueva Etiquetas"
+            size="small"
             value={tagsAdd}
             onChange={handleChangeTagsAdd}
           />
@@ -155,41 +148,27 @@ const DatosPaciente = ({ setBtnEstado, btnEstado }) => {
           >
             <AddIcon fontSize="small" />
           </Button>
-        </Stack>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={{ xs: 1, sm: 2, md: 4 }}
-          style={{ margin: "10px 0", width: "90%" }}
+        </form>
+
+        <Button
+          className={classes.buttonSubmit}
+          variant="contained"
+          color="primary"
+          type="submit"
+          disabled={btnGrabar}
         >
-          <FileBase
-            type="file"
-            multiple={false}
-            name="foto"
-            onDone={({ base64 }) => handleFoto({ base64 })}
-          />
-        </Stack>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={{ xs: 1, sm: 2, md: 4 }}
+          Grabar
+        </Button>
+        <Button
+          className={classes.buttonSubmit}
+          variant="contained"
+          color="secondary"
+          onClick={() =>
+            setBtnEstado({ ...btnEstado, btnDatosPaciente: false })
+          }
         >
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            disabled={btnGrabar}
-          >
-            Grabar
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() =>
-              setBtnEstado({ ...btnEstado, btnDatosPaciente: false })
-            }
-          >
-            Cerrar
-          </Button>
-        </Stack>
+          Cerrar
+        </Button>
       </form>
       <Divider style={{ margin: 10 }} />
     </Paper>

@@ -3,7 +3,6 @@ export const PacienteDoc = {
   userId: '',
   apellidos: '',
   nombres: '',
-  foto: '',
   tags: [],
   resumen: '',
   persona: {
@@ -80,5 +79,5 @@ export const PacienteDoc = {
       notas: '',
     },
   },
-  atenciones: [{ fecha: null, notas: '', selectedFiles: [], diaStr: '', anomesStr: '', diagnostico: '', practica: '', userId: '', }],
+  atenciones: [{ fecha: null, notas: '', selectedFiles: [], diaStr: '', anomesStr: '', diagnosticos: [], practicas: [], userId: '', }],
 }

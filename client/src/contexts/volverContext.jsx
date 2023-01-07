@@ -15,13 +15,16 @@ export const VolverContext = createContext();
 export function VolverContextProvider(props) {
   const [contextVolver, setContextVolver] = useState({
     vista: "todos",
-    menu: "1", //"1" pacientes, "2" atenciones
-    page: "1",
+    menu: "1", //"1" pacientes, "2" atenciones, "3" calendario
+    page: 1,
     searchQuery: "",
     tags: [],
     solo: true,
     anomesStr: null,
     fechaAte1: fechaAteStrInicial(),
+    volver: false,
+    diagnosticos: [],
+    practicas: [],
   });
   const value = { contextVolver, setContextVolver };
   return (

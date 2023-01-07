@@ -2,31 +2,24 @@ import React, { useState } from 'react';
 import { Grid, CircularProgress, Button, Typography, Table, TableBody, TableContainer, TableHead, TableRow, Paper, TablePagination, Collapse, IconButton } from '@mui/material';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import { styled } from '@mui/material/styles';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import EditIcon from '@mui/icons-material/Edit';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+//import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import moment from 'moment';
 import DeleteIcon from '@mui/icons-material/Delete';
 import swal from 'sweetalert'
-import generateExcel from "zipcelx";
-import { BlobProvider } from "@react-pdf/renderer";
 
 
 import { deletePaciente } from '../../actions/pacientes'
 import useStyles from './styles';
 import { useVolverContext } from "../../contexts/volverContext";
-import HCReducido from '../PDFs/HC/HCReducido'
+import ExcelPacientes from '../../helpers/ExcelPacientes';
 
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
-
-const Pacientes1 = ({ setCurrentId }) => {
+const Pacientes1 = () => {
   const { pacientes, isLoading } = useSelector((state) => state.pacientes);
-  const query = useQuery();
   const { contextVolver } = useVolverContext()
   const { vista, anomesStr, fechaAte1 } = contextVolver
 
@@ -145,9 +138,9 @@ const Pacientes1 = ({ setCurrentId }) => {
   //   return `${pac.apellidos}-${pac.nombres}.pdf`
   // }
 
-  const openPDF = (url) => {
-    window.open(url, '_blank');
-  };
+  // const openPDF = (url) => {
+  //   window.open(url, '_blank');
+  // };
 
   const Row = (props) => {
     const { pac } = props;
@@ -217,9 +210,10 @@ const Pacientes1 = ({ setCurrentId }) => {
               <EditIcon fontSize="small" />
             </Button>
           </StyledTableCell>
+          {/*
           <StyledTableCell width="8%" align="right">
 
-            <BlobProvider
+             <BlobProvider
               document={<HCReducido paciente={pac} pdfPaciente={true}
                 pdfDomicilio={true}
                 pdfFamiliares={true}
@@ -227,7 +221,10 @@ const Pacientes1 = ({ setCurrentId }) => {
                 pdfHabitos={true}
                 pdfMedicos={true}
                 pdfPsicoSocial={true}
-                pdfPersona={true} />}
+                pdfPersona={true}
+                vistaPdf='todos'
+                periodo=''
+              />}
             >
               {({ url, blob, loading }) => {
                 return (
@@ -241,10 +238,12 @@ const Pacientes1 = ({ setCurrentId }) => {
                   </Button>
                 );
               }}
-            </BlobProvider>
+            </BlobProvider> 
 
 
           </StyledTableCell>
+          */}
+
           <StyledTableCell width="8%" align="right">
             <Button
               variant="contained"
@@ -281,105 +280,11 @@ const Pacientes1 = ({ setCurrentId }) => {
   }
 
 
-  const getFileName = () => {
-    let nameFin = ''
-    const searchQuery = query.get('searchQuery');
-    if (searchQuery !== '9a69dc7e834f617' && searchQuery !== null) {
-      nameFin = ' - con FILTROS'
-    }
-    const tags = !query.get('tags') ? [] : query?.get('tags').split(',')
-    if (tags.length > 0) nameFin = ' - con FILTROS'
-
-    const pagina = query.get('page') || '1'
-
-    if (vista === 'todos') return 'Pacientes' + nameFin + ' pag' + pagina
-    if (vista === 'proxima') return 'Pacientes con turnos ' + nameFin + ' pag' + pagina
-    if (vista === 'dia') return 'Pacientes atendidos el ' + fechaAte1 + nameFin + ' pag' + pagina
-    if (vista === 'anomes') return 'Pacientes atendidos el mes ' + anomesStr + nameFin + ' pag' + pagina
-    return 'Pacientes' + nameFin + ' pag' + pagina
-  }
-
-
-  const descargarArchivo = () => {
-
-    let filtros = null
-    let search = ''
-    const searchQuery = query.get('searchQuery');
-    if (searchQuery !== '9a69dc7e834f617' && searchQuery !== null) {
-      filtros = ' - con FILTROS'
-      search = searchQuery
-    }
-    const tags = !query.get('tags') ? [] : query?.get('tags').split(',')
-    if (tags.length > 0) {
-      filtros = ' - con FILTROS'
-    }
-    const tagsStr = tags.join(" ")
-
-    const config = {
-      filename: getFileName(),
-      sheet: {
-        data: []
-      }
-    };
-
-    const dataSet = config.sheet.data;
-
-
-    //Filtros
-    if (filtros) {
-      dataSet.push([{ value: 'FILTROS', type: 'string' }])
-      dataSet.push([{ value: 'DNI o Nombre: ' + search, type: 'string' }])
-      dataSet.push([{ value: 'Etiquetas: ' + tagsStr, type: 'string' }])
-      dataSet.push([{ value: '', type: 'string' }])
-    }
-
-
-    //Titulos
-    const headerRow = [];
-
-    headerRow.push({ value: 'dni', type: 'string' })
-    headerRow.push({ value: 'Paciente', type: 'string' })
-    headerRow.push({ value: 'Etiquetas', type: 'string' })
-    headerRow.push({ value: 'Atenciones', type: 'string' })
-    headerRow.push({ value: 'Última Atención', type: 'string' })
-    headerRow.push({ value: 'Próxima Atención', type: 'string' })
-    headerRow.push({ value: 'Resumen', type: 'string' })
-    dataSet.push(headerRow);
-
-    // Filas
-    if (pacientes.length > 0) {
-      pacientes.forEach(pac => {
-        const dataRow = [];
-        if (pac.atenciones) { sortByFecha(pac.atenciones) }
-
-        dataRow.push({ value: pac.dni, type: 'string' })
-        dataRow.push({ value: pac.apellidos + ", " + pac.nombres, type: 'string' })
-        dataRow.push({ value: pac.tags.map((tag) => `${tag} `), type: 'string' })
-        dataRow.push({ value: pac.atenciones.length, type: 'number' })
-        dataRow.push({ value: pac.atenciones.length > 0 ? moment(pac.atenciones[0].fecha).format("DD/MM/YY") : '', type: 'string' })
-        dataRow.push({ value: pac.proximaAtencion ? proxima(pac.proximaAtencion) : '', type: 'string' })
-        dataRow.push({ value: pac.resumen, type: 'string' })
-        dataSet.push(dataRow);
-      });
-    } else {
-      dataSet.push([
-        {
-          value: "Sin Datos",
-          type: "string"
-        }
-      ]);
-    }
-
-
-    return generateExcel(config);
-
-  }
-
 
   return (
     isLoading ? <CircularProgress /> : (
       <Grid className={classes.container} container alignItems="stretch" spacing={3}>
-        <Button onClick={() => descargarArchivo()}>Descargar Lista</Button>
+        <Button onClick={() => ExcelPacientes(pacientes)}>Descargar Lista</Button>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} size="small" aria-label="simple table" >
             <TableHead >
@@ -402,9 +307,9 @@ const Pacientes1 = ({ setCurrentId }) => {
                 <StyledTableCell width="8%" align="center">
                   Modificar
                 </StyledTableCell>
-                <StyledTableCell width="8%" align="center">
+                {/* <StyledTableCell width="8%" align="center">
                   Descargar
-                </StyledTableCell>
+                </StyledTableCell> */}
                 <StyledTableCell width="8%" align="center">
                   Eliminar
                 </StyledTableCell>

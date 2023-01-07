@@ -8,11 +8,14 @@ import {
   Grid,
   IconButton,
   Stack,
+  ToggleButtonGroup,
+  ToggleButton,
+  Autocomplete,
 } from "@mui/material/";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 import "moment/locale/es";
-import DatePicker from "@mui/lab/DatePicker";
+import DateTimePicker from "@mui/lab/DateTimePicker";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import HomeIcon from "@mui/icons-material/Home";
 import PersonIcon from "@mui/icons-material/Person";
@@ -23,9 +26,12 @@ import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import SmokingRoomsIcon from "@mui/icons-material/SmokingRooms";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import TodayIcon from '@mui/icons-material/Today';
 import Checkbox from "@mui/material/Checkbox";
 import { useParams, useNavigate } from "react-router-dom";
 import { BlobProvider } from "@react-pdf/renderer";
+import { styled } from "@mui/material/styles";
+import swal from "sweetalert";
 
 import AtencionSection from "./AtencionSection";
 import {
@@ -33,6 +39,7 @@ import {
   resumenPaciente,
   proximaAtencionPaciente,
 } from "../../actions/pacientes";
+import { getCalendarioProximo } from "../../actions/calendarioProximo";
 import useStyles from "./styles";
 import { PacienteDoc } from "../../constants/pacienteDoc";
 
@@ -45,31 +52,43 @@ import AMedicos from "./DatosPaciente/AMedicos";
 import APsicosocial from "./DatosPaciente/APsicosocial";
 import DatosPaciente from "./DatosPaciente/DatosPaciente";
 
-import hombrePensando from "../../images/pensando.jpg";
+//import hombrePensando from "../../images/pensando.jpg";
 import { useVolverContext } from "../../contexts/volverContext";
+import { useCalendarioContext } from "../../contexts/CalendarioContext";
 import HCReducido from "../PDFs/HC/HCReducido";
+
+import CalendarioProximos from "../Calendario/CalendarioProximos"
 
 const PacienteDetails = () => {
   const { paciente } = useSelector((state) => state.pacientes);
-  const { contextVolver } = useVolverContext();
+  const hinis = ['00','01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12','13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']
+  const hfins = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12','13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23','24']
+
+  const { contextVolver, setContextVolver } = useVolverContext();
+  const { contextCalendario, setContextCalendario } = useCalendarioContext();
+  const { stepc, hini, hfin } = contextCalendario;
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const locale = moment.locale("es");
 
-  const { vista, menu, page, searchQuery, tags, solo, anomesStr, fechaAte1 } =
-    contextVolver;
+  const {
+    vista,
+    menu,
+    page,
+    searchQuery,
+    tags,
+    solo,
+    anomesStr,
+    fechaAte1,
+    diagnosticos,
+    practicas,
+  } = contextVolver;
+
+  const [vistaPdf, setVistaPdf] = useState("todos");
+  const [periodo, setPeriodo] = useState("");
 
   const [pacienteData, setPacienteData] = useState(PacienteDoc);
-
-  // const [btnDatosPaciente, setBtnDatosPaciente] = useState(false);
-  // const [btnDomicilio, setBtnDomicilio] = useState(false);
-  // const [btnAFamiliares, setBtnAFamiliares] = useState(false);
-  // const [btnAGineco, setBtnAGineco] = useState(false);
-  // const [btnAHabitos, setBtnAHabitos] = useState(false);
-  // const [btnAMedicos, setBtnAMedicos] = useState(false);
-  // const [btnAPsicosocial, setBtnAPsicosocial] = useState(false);
-  // const [btnPersona, setBtnPersona] = useState(false);
 
   const [btnEstado, setBtnEstado] = useState({
     btnDatosPaciente: false,
@@ -97,32 +116,24 @@ const PacienteDetails = () => {
   const [resumen, setResumen] = useState("nadaW");
   const [proximaAtencion, setProximaAtencion] = useState(null);
   const [btnBuscar, setBtnBuscar] = useState(false);
+  const [btnCalendarioProximo, setBtnCalendarioProximo] = useState(false)
 
   const classes = useStyles();
-  //const user = JSON.parse(localStorage.getItem("profile"));
   const { id } = useParams();
 
+  useEffect( () => {
+     dispatch(getCalendarioProximo());
+  }, []);
+
+
   useEffect(() => {
-    dispatch(getPaciente(id));
+     dispatch(getPaciente(id));
   }, [id]);
 
   useEffect(() => {
     if (paciente) {
       setPacienteData(paciente);
-      if (paciente.proximaAtencion) {
-        const anoAte = parseInt(
-          String(paciente.proximaAtencion).substring(0, 4)
-        );
-        const mesAte = parseInt(
-          String(paciente.proximaAtencion).substring(5, 7)
-        );
-        const diaAte = parseInt(
-          String(paciente.proximaAtencion).substring(8, 10)
-        );
-        setProximaAtencion(new Date(anoAte, mesAte - 1, diaAte));
-      } else {
-        setProximaAtencion(null);
-      }
+      paciente.proximaAtencion ? setProximaAtencion(paciente.proximaAtencion) : setProximaAtencion(null)
     }
   }, [paciente]);
 
@@ -130,15 +141,31 @@ const PacienteDetails = () => {
     return null;
   }
 
+
+  const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
+    "& .MuiToggleButtonGroup-grouped": {
+      margin: theme.spacing(0.5),
+      border: 0,
+      "&.Mui-selected": {
+        outlineColor: "blue",
+        outlineWidth: "1px",
+        outlineStyle: "solid",
+        margin: "2px",
+      },
+    },
+  }));
+
   const handleClick = async () => {
     if (resumen !== "nadaW") {
       await dispatch(resumenPaciente(resumen, id));
     }
     if (proximaAtencion && !isNaN(moment(proximaAtencion))) {
       await dispatch(proximaAtencionPaciente(proximaAtencion, id));
+      await dispatch(getCalendarioProximo());
     } else {
       if (!proximaAtencion) {
         await dispatch(proximaAtencionPaciente(proximaAtencion, id));
+        await dispatch(getCalendarioProximo());
       }
     }
     setBtnBuscar(false);
@@ -150,68 +177,94 @@ const PacienteDetails = () => {
     setBtnBuscar(true);
   };
 
-  const volver = () => {
-    if (menu === "1") {
-      if (solo) {
-        navigate(`/pacientes?page=${page}`);
-      } else {
-        const search = searchQuery;
-        if (
-          search.trim() ||
-          tags.length > 0 ||
-          vista ||
-          fechaAte1 ||
-          anomesStr
-        ) {
-          /*
-          dispatch(
-            getPacientesBySearch({
-              search,
-              tags,
-              page,
-              vista,
-              fechaAte1,
-              anomesStr,
-            })
-          );
-          */
-          navigate(
-            `/pacientes/search?searchQuery=${
-              search || "9a69dc7e834f617"
-            }&tags=${tags}&page=${page}&vista=${vista}&fechaAte1=${fechaAte1}&anomesStr=${anomesStr}`
-          );
+  const volverPag = () => {
+    setContextVolver({ ...contextVolver, volver: true });
+
+    switch (menu) {
+      case '3':
+        if (solo) {
+          navigate(`/calendario`);
         } else {
-          navigate("/");
+          const search = searchQuery;
+          if (
+            search.trim() ||
+            tags.length > 0 ||
+            diagnosticos.length > 0 ||
+            practicas.length > 0
+          ) {
+            navigate(
+              `/calendario/search?searchQuery=${
+                search || "9a69dc7e834f617"
+              }&tags=${tags.join(
+                ","
+              )}&diagnosticos=${diagnosticos.join(
+                ","
+              )}&practicas=${practicas.join(",")}`
+            );
+          } else {
+            navigate("/calendario");
+          }
         }
-      }
-    } else {
-      if (solo) {
-        navigate(`/atenciones`);
-      } else {
-        const search = searchQuery;
-        if (search.trim() || tags.length > 0 || anomesStr || fechaAte1) {
-          /*
-          dispatch(
-            getAtencionesBySearch({
-              search,
-              tags,
-              page,
-              vista,
-              anomesStr,
-              fechaAte1,
-            })
-          );
-          */
-          navigate(
-            `/atenciones/search?searchQuery=${
-              search || "9a69dc7e834f617"
-            }&tags=${tags}&page=${page}&vista=${vista}&anomesStr=${anomesStr}&fechaAte1=${fechaAte1}`
-          );
-        } else {
-          navigate("/atenciones");
+        break;
+
+        case '2':
+          if (solo) {
+            navigate(`/atenciones`);
+          } else {
+            const search = searchQuery;
+            if (
+              search.trim() ||
+              tags.length > 0 ||
+              anomesStr ||
+              fechaAte1 ||
+              diagnosticos.length > 0 ||
+              practicas.length > 0
+            ) {
+              navigate(
+                `/atenciones/search?searchQuery=${
+                  search || "9a69dc7e834f617"
+                }&tags=${tags.join(
+                  ","
+                )}&page=${page}&vista=${vista}&anomesStr=${anomesStr}&fechaAte1=${fechaAte1}&diagnosticos=${diagnosticos.join(
+                  ","
+                )}&practicas=${practicas.join(",")}`
+              );
+            } else {
+              navigate("/atenciones");
+            }
+          }
+          break;        
+         
+          default:
+            if (solo) {
+              navigate(`/pacientes?page=${page}`);
+            } else {
+              const search = searchQuery;
+              if (
+                search.trim() ||
+                tags.length > 0 ||
+                vista ||
+                fechaAte1 ||
+                anomesStr ||
+                diagnosticos.length > 0 ||
+                practicas.length > 0
+              ) {
+                navigate(
+                  `/pacientes/search?searchQuery=${
+                    search || "9a69dc7e834f617"
+                  }&tags=${tags.join(
+                    ","
+                  )}&page=${page}&vista=${vista}&fechaAte1=${fechaAte1}&anomesStr=${anomesStr}&diagnosticos=${diagnosticos.join(
+                    ","
+                  )}&practicas=${practicas.join(",")}`
+                );
+              } else {
+                navigate("/");
+              }
+            }
+            break;
         }
-      }
-    }
+    
   };
 
   const handleCheck = (e) => {
@@ -248,9 +301,15 @@ const PacienteDetails = () => {
   } = btnEstado;
 
   const openPDF = (url) => {
-    console.log(pdfEstado);
     window.open(url, "_blank");
   };
+
+  const handleVistaPdf = (event, newVista) => {
+    newVista !== null ? setVistaPdf(newVista) : setVistaPdf("todos");
+  };
+
+
+  const handleCalendarioProximo = () => setBtnCalendarioProximo(!btnCalendarioProximo)
   return (
     <Paper style={{ padding: "20px", borderRadius: "15px" }} elevation={6}>
       <div className={classes.card}>
@@ -273,19 +332,21 @@ const PacienteDetails = () => {
                       variant="contained"
                       size="small"
                       color="primary"
-                      onClick={volver}
+                      onClick={volverPag}
                       style={{ maxHeight: "50px" }}
                     >
                       <ArrowBackIcon fontSize="medium" />
                     </Button>
-                    <img
+                    {/* <img
                       className={classes.media}
                       src={pacienteData.foto || hombrePensando}
                       alt={pacienteData.apellidos}
-                    />
-
-                    <Typography variant="h4" component="h3">
-                      {paciente.dni} - {paciente.apellidos}, {paciente.nombres}
+                    /> */}
+                    <div className={classes.section}>
+                      <Typography variant="h4" component="h3">
+                        {paciente.dni} - {paciente.apellidos},{" "}
+                        {paciente.nombres}
+                      </Typography>
                       <Typography
                         gutterBottom
                         variant="h6"
@@ -415,7 +476,7 @@ const PacienteDetails = () => {
                       >
                         <PsychologyIcon fontSize="inherit" />
                       </IconButton>
-                    </Typography>
+                    </div>
                   </Stack>
                 </Grid>
 
@@ -575,6 +636,56 @@ const PacienteDetails = () => {
                           alignItems: "center",
                         }}
                       >
+                        <StyledToggleButtonGroup
+                          color="success"
+                          value={vistaPdf}
+                          size="small"
+                          exclusive
+                          onChange={handleVistaPdf}
+                          style={{
+                            marginBottom: "20px",
+                            alignSelf: "center",
+                            border: 5,
+                          }}
+                        >
+                          <ToggleButton size="small" value="todos">
+                            T
+                          </ToggleButton>
+                          <ToggleButton size="small" value="anomes">
+                            M
+                          </ToggleButton>
+                          <ToggleButton size="small" value="dia">
+                            D
+                          </ToggleButton>
+                        </StyledToggleButtonGroup>
+                        <TextField
+                          variant="standard"
+                          disabled={
+                            vistaPdf === "todos" || vistaPdf === null
+                              ? true
+                              : false
+                          }
+                          label={
+                            vistaPdf === "anomes"
+                              ? "AAAAMM"
+                              : vistaPdf === "dia"
+                              ? "AAAAMMDD"
+                              : "Todos"
+                          }
+                          size="small"
+                          value={periodo}
+                          onChange={(e) => setPeriodo(e.target.value)}
+                        />
+                      </Stack>
+                      <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        spacing={{ xs: 1, sm: 2, md: 4 }}
+                        style={{
+                          alignSelf: "center",
+                          alignContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
                         <BlobProvider
                           document={
                             <HCReducido
@@ -587,6 +698,8 @@ const PacienteDetails = () => {
                               pdfMedicos={pdfMedicos}
                               pdfPsicoSocial={pdfPsicoSocial}
                               pdfPersona={pdfPersona}
+                              vistaPdf={vistaPdf}
+                              periodo={periodo}
                             />
                           }
                         >
@@ -608,10 +721,13 @@ const PacienteDetails = () => {
                   )}
                 </Grid>
               </div>
-              <div style={{ width: "100%", marginBottom: "20px" }}>
-                <Typography gutterBottom variant="h6">
-                  Escribe un Resumen Clínico:
-                </Typography>
+              <Typography gutterBottom variant="h6">
+                Escribe un Resumen Clínico:
+              </Typography>
+              <Stack
+                direction={{ xs: "column", sm: "column", md: "row" }}
+                spacing={{ xs: 1, sm: 2, md: 4 }}
+              >
                 <TextField
                   rows={4}
                   style={{ width: "80%", marginRight: "20px" }}
@@ -622,8 +738,29 @@ const PacienteDetails = () => {
                   onChange={handleResumen}
                 />
 
-                <DatePicker
-                  mask="__/__/____"
+              </Stack>
+
+              <Stack direction={{ xs: "column", sm: "row" }}
+                        spacing={{ xs: 1, sm: 2, md: 4 }}
+                        style={{
+                          alignSelf: "center",
+                          alignContent: "center",
+                          alignItems: "center",
+                          marginTop: "10px"
+                        }}>
+              <Button
+                  style={{ marginTop: "10px" }}
+                  //disabled={!btnBuscar}
+                  variant="contained"
+                  onClick={handleCalendarioProximo}
+                  color={btnCalendarioProximo ?  "secondary" : "primary" }
+                  aria-label="Ver PDF"
+                  
+                >
+                  <TodayIcon />
+                </Button>
+                <DateTimePicker
+                style={{ margin: "10px" }}
                   label="Próxima Atención."
                   value={
                     proximaAtencion
@@ -636,7 +773,97 @@ const PacienteDetails = () => {
                   }}
                   renderInput={(params) => <TextField {...params} />}
                 />
-              </div>
+                </Stack>
+                { btnCalendarioProximo && 
+                <>
+                
+                <CalendarioProximos 
+                  id={id} setBtnBuscar={setBtnBuscar} />
+                <Stack direction={{ xs: "column", sm: "row" }}
+                        spacing={{ xs: 1, sm: 2, md: 4 }}
+                        style={{
+                          alignSelf: "center",
+                          alignContent: "center",
+                          alignItems: "center",
+                        }}>
+                  <Typography style={{ marginBottom: '10px' }} variant="subtitle1" alignSelf="center" >
+                    Intérvalo:
+                  </Typography>
+
+                  <StyledToggleButtonGroup
+                    color="success"
+                    value={stepc}
+                    size='small'
+                    exclusive
+                    onChange={(event, newValue) => {
+                      setContextCalendario({
+                        ...contextCalendario,
+                        stepc: newValue,
+                      });
+                    }}
+                    style={{ marginBottom: '20px', alignSelf: "center", border: 5 }}
+
+                  >
+                    <ToggleButton size='small' value="15" defaultChecked >15</ToggleButton>
+                    <ToggleButton size='small' value="30" >30</ToggleButton>
+                    <ToggleButton size='small' value="60">60</ToggleButton>
+                  </StyledToggleButtonGroup>
+                
+                
+                  <Autocomplete
+                  style={{ width: 100 }}
+                  value={hini}
+                  size='small'
+                  isOptionEqualToValue={(option, value) => option === value}
+                  onChange={(event, newValue) => {
+                    
+                    if (newValue >= hfin) {
+                      return (swal({
+                        title: "Hora de Inicio",
+                        text: "Hora de Inicio inválida, verifique",
+                        icon: "danger",
+                        timer: "3000",
+                      }))
+                    }
+                    setContextCalendario({
+                      ...contextCalendario,
+                      hini: newValue,
+                    });
+                  }}
+                  id="hini"
+                  options={hinis}
+                  sx={{ width: 300 }}
+                  renderInput={(params) => <TextField {...params} label="Hora inicial" />}
+                />
+                  <Autocomplete
+                  style={{ width: 100 }}
+                  value={hfin}
+                  size='small'
+                  isOptionEqualToValue={(option, value) => option === value}
+                  onChange={(event, newValue) => {
+                    if (newValue <= hini) {
+                      return (swal({
+                        title: "Hora de Fin",
+                        text: "Hora de Fin inválida, verifique",
+                        icon: "danger",
+                        timer: "3000",
+                      }))
+                    }
+                    setContextCalendario({
+                      ...contextCalendario,
+                      hfin: newValue,
+                    });
+                  }}
+                  id="hfin"
+                  options={hfins}
+                  sx={{ width: 300 }}
+                  renderInput={(params) => <TextField {...params} label="Hora Final" />}
+                />
+                
+                </Stack>
+                  </>
+                }
+                
               <div style={{ width: "100%", marginBottom: "20px" }}>
                 <Button
                   style={{ marginTop: "10px" }}

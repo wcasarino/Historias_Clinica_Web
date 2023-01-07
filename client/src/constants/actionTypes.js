@@ -18,5 +18,14 @@ export const START_LOADING_ATE = 'START_LOADING_ATE';
 export const FETCH_ALL_ANOATE = 'FETCH_ALL_ANOATE';
 export const FETCH_ZERO_ATE = 'FETCH_ZERO_ATE';
 
+export const FETCH_CALP = 'FETCH_CALP';
+export const END_LOADING_CALP = 'END_LOADING_CALP';
+export const START_LOADING_CALP = 'START_LOADING_CALP';
+
+export const FETCH_BY_SEARCH_CAL = 'FETCH_BY_SEARCH_CAL';
+export const END_LOADING_CAL = 'END_LOADING_CAL';
+export const START_LOADING_CAL = 'START_LOADING_CAL';
+
+
 export const AUTH = 'AUTH';
 export const LOGOUT = 'LOGOUT';
