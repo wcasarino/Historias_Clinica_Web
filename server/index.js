@@ -49,11 +49,11 @@ app.use("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5001;
-console.log(`Server Running on Port: http://localhost:${PORT}`);
+const CONNECTION_URL =
+  process.env.CONNECTION_URL || "mongodb://localhost:27017/turnos_app";
 
-/*
 mongoose
-  .connect(process.env.CONNECTION_URL, {
+  .connect(CONNECTION_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -65,5 +65,3 @@ mongoose
   .catch((error) => console.log(`${error} did not connect`));
 
 mongoose.set("useFindAndModify", false);
-
-*/
